@@ -8,6 +8,7 @@
 - **Temps restant au début de l'itération 2** : 75 minutes (2026-11-17).
 - **Temps restant au début de l'itération 3** : 60 minutes (2026-11-17). Le développeur confirme le gabarit déterministe (pas d'appel LLM) pour le rapport — lève le ❓ ci-dessous.
 - **Temps restant au début de l'itération 4** : 45 minutes (2026-11-17). Capacité restante : ~25 min pour cette itération (codage + publication + tour de test), peu de marge ensuite — probablement une seule itération de stabilisation après celle-ci.
+- **Temps restant au début de l'itération 5** : 20-30 minutes (2026-11-17). Dernière itération du plan : stabilisation pour le pitch, pas de nouvelle fonctionnalité.
 - **Durée du tour de test de l'équipe** : 10 minutes.
 - **Capacité estimée** : chaque itération coûte son codage (≤10 min) + ~5 min de publication + 10 min de tour de test, soit 18 à 25 min. 120 minutes permettent environ 5 itérations.
 
@@ -133,6 +134,29 @@
     - `frontend/src/app/page.module.css` : style du badge `.badgeEnvoye` sur l'écran de situation — sert le critère 1.
     - `e2e/demo.spec.ts` : étape « Je retrouve le statut d'envoi sur l'écran de situation » ajoutée (hors DoD ; toujours non exécutable sur cette VM, voir bilan de l'itération 1).
 
-## À venir (objectifs ordonnés, non détaillés)
+## Itération 5 : Stabilisation finale pour le pitch
 
-5. Stabilisation finale pour le pitch : relecture des textes, vérification du parcours complet sur l'URL publique, correctifs mineurs — pas de nouvelle fonctionnalité.
+- **Dans le périmètre** : rejouer le parcours complet (situation → capture d'une note → rapport pré-rédigé → envoi au magistrat → badge visible) sur le déploiement actuel ; corriger les défauts mineurs trouvés. Un défaut identifié en relecture : le 3ᵉ item de la liste « Envoyer au magistrat » sur l'écran de situation est cliquable (curseur, style identique aux deux autres) mais ne fait rien — trompeur pour la démo. Correctif : le fait pointer vers l'écran rapport, comme dans le prototype où les trois items mènent à l'écran 2.
+- **Hors périmètre** : toute nouvelle fonctionnalité, tout nouvel écran, tout changement de logique métier.
+- **Critères d'acceptation** :
+  - Étant donné le parcours complet rejoué sur le déploiement, quand on l'exécute de bout en bout, alors aucune étape ne produit d'erreur visible ni de texte incohérent.
+  - Étant donné l'item « Envoyer au magistrat » sur l'écran de situation, quand on clique dessus, alors il ouvre l'écran rapport au lieu de ne rien faire.
+  - Étant donné l'application déployée, quand on relance `./scripts/verifier-deployabilite.sh`, alors aucune borne n'est signalée.
+- **Hypothèse de l'équipe couverte** : aucune — stabilisation, pas une nouvelle idée.
+- **Codage estimé** : 3 minutes (correctif d'un `onClick` manquant).
+- **Fichiers prévus** : `frontend/src/app/page.tsx`.
+- **Tests unitaires prévus** : aucun — aucune logique métier nouvelle, correctif de câblage UI pur.
+- **Étapes ajoutées à la démo** : aucune nouvelle étape ; la démo existante couvre déjà le parcours complet.
+- **Bilan** :
+  - Durée de codage réelle : 0 minute (bien sous l'estimation de 3 minutes), aucun dépassement.
+  - Les 3 critères sont satisfaits : parcours complet rejoué sans erreur sur le déploiement (curl des routes `/health`, `/api/v1/rapport`, et front 200) ; l'item « Envoyer au magistrat » ouvre désormais l'écran rapport ; `./scripts/verifier-deployabilite.sh` ne signale aucune borne.
+  - Rien de reporté : c'était la dernière itération du plan, consacrée à la stabilisation.
+  - Le harnais n'a rien bloqué ni refusé.
+  - Au passage, `DEPLOIEMENT.md` a été relu : il décrivait encore l'état de l'itération 1 (aucune route, trois items morts). Mis à jour pour refléter l'état réel (routes notes/rapport/envoi, gabarit déterministe, persistance en mémoire).
+  - **Modifications** :
+    - `frontend/src/app/page.tsx` : ajout de `onClick={ouvrirRapport}` (+ `role`/`tabIndex`) sur le 3ᵉ item de la liste d'actions — sert le 2ᵉ critère d'acceptation.
+    - `DEPLOIEMENT.md` : sections « Services », « Services externes appelés » et « Fragile / inachevé » réécrites pour refléter l'état réel du service — sert le 1ᵉʳ critère (parcours cohérent, y compris sa documentation).
+
+## À venir
+
+Plan complet : l'itération 5 était la dernière prévue (stabilisation pour le pitch). Aucune itération supplémentaire n'est planifiée. Si les cadreurs demandent une extension de périmètre après leur tour de test, elle sera détaillée ici avant d'être codée.
