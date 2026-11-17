@@ -24,12 +24,18 @@ export default function Home() {
   const [texte, setTexte] = useState("");
   const [ecran, setEcran] = useState<Ecran>("situation");
   const [rapportTexte, setRapportTexte] = useState("");
-  const [rapportEnvoye, setRapportEnvoye] = useState(false);
+  const [envoyeLe, setEnvoyeLe] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/v1/notes")
       .then((reponse) => reponse.json())
       .then((donnees: { notes: Note[] }) => setNotes(donnees.notes))
+      .catch(() => {
+        // L'API n'est pas joignable en chemin relatif hors de la passerelle d'entrée (voir DEPLOIEMENT.md).
+      });
+    fetch("/api/v1/rapport")
+      .then((reponse) => reponse.json())
+      .then((donnees: { envoyeLe: string | null }) => setEnvoyeLe(donnees.envoyeLe))
       .catch(() => {
         // L'API n'est pas joignable en chemin relatif hors de la passerelle d'entrée (voir DEPLOIEMENT.md).
       });
@@ -53,13 +59,23 @@ export default function Home() {
 
   function ouvrirRapport() {
     setEcran("rapport");
-    setRapportEnvoye(false);
     fetch("/api/v1/rapport")
       .then((reponse) => reponse.json())
-      .then((donnees: { texte: string }) => setRapportTexte(donnees.texte))
+      .then((donnees: { texte: string; envoyeLe: string | null }) => {
+        setRapportTexte(donnees.texte);
+        setEnvoyeLe(donnees.envoyeLe);
+      })
       .catch(() => {
         // L'API n'est pas joignable en chemin relatif hors de la passerelle d'entrée (voir DEPLOIEMENT.md).
       });
+  }
+
+  async function envoyerAuMagistrat() {
+    const reponse = await fetch("/api/v1/rapport/envoi", { method: "POST" });
+    if (reponse.ok) {
+      const donnees: { envoyeLe: string } = await reponse.json();
+      setEnvoyeLe(donnees.envoyeLe);
+    }
   }
 
   if (ecran === "rapport") {
@@ -76,10 +92,10 @@ export default function Home() {
           <p className={styles.rapportTexte}>{rapportTexte}</p>
         </div>
 
-        {rapportEnvoye ? (
-          <div className={styles.statutEnvoye}>Envoyé au magistrat</div>
+        {envoyeLe ? (
+          <div className={styles.statutEnvoye}>Envoyé au magistrat le {new Date(envoyeLe).toLocaleString("fr-FR")}</div>
         ) : (
-          <button className={styles.btnPrimary} onClick={() => setRapportEnvoye(true)}>
+          <button className={styles.btnPrimary} onClick={envoyerAuMagistrat}>
             Envoyer au magistrat
           </button>
         )}
@@ -96,6 +112,11 @@ export default function Home() {
         <div className={styles.labelService}>Intervention en cours</div>
         <h1>{situation.famille}</h1>
         <div className={styles.subtitle}>{situation.mesure}</div>
+        {envoyeLe && (
+          <div className={styles.badgeEnvoye}>
+            Envoyé au magistrat le {new Date(envoyeLe).toLocaleString("fr-FR")}
+          </div>
+        )}
       </header>
 
       <section className={styles.relationsArea}>

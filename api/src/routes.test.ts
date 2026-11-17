@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ajouterNote, composerRapport, router } from "./routes.ts";
+import { ajouterNote, composerRapport, router, statutEnvoi } from "./routes.ts";
 
 describe("router", () => {
   it("répond 200 sur les deux routes de santé", () => {
@@ -40,5 +40,15 @@ describe("composerRapport", () => {
   it("compose un texte à partir des notes capturées", () => {
     const texte = composerRapport([{ texte: "Léa semble sereine", creeLe: "2026-01-01T00:00:00.000Z" }]);
     expect(texte).toContain("Léa semble sereine");
+  });
+});
+
+describe("statut d'envoi du rapport", () => {
+  it("enregistre une date d'envoi retrouvable sur GET /api/v1/rapport", () => {
+    expect(statutEnvoi()).toBeNull();
+    const creation = router("POST", "/api/v1/rapport/envoi");
+    expect(creation.statut).toBe(201);
+    const rapport = router("GET", "/api/v1/rapport").corps as { envoyeLe: string | null };
+    expect(rapport.envoyeLe).not.toBeNull();
   });
 });

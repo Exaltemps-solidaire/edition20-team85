@@ -21,6 +21,18 @@ export function listerNotes(): Note[] {
   return notes;
 }
 
+// Statut d'envoi du rapport : un seul envoi suivi à la fois, pas d'historique (hors périmètre de l'itération 4).
+let envoyeLe: string | null = null;
+
+export function enregistrerEnvoi(): string {
+  envoyeLe = new Date().toISOString();
+  return envoyeLe;
+}
+
+export function statutEnvoi(): string | null {
+  return envoyeLe;
+}
+
 // Gabarit déterministe : pas d'appel à un modèle de langage (voir ❓ dans ITERATIONS.md,
 // tranché par le développeur en faveur du gabarit pour cette itération).
 export function composerRapport(notesSaisies: Note[]): string {
@@ -50,7 +62,13 @@ export function router(methode: string, url: string, corps?: unknown): Reponse {
   }
   if (chemin === "/api/v1/rapport" && methode === "GET") {
     const notesActuelles = listerNotes();
-    return { statut: 200, corps: { texte: composerRapport(notesActuelles), nombreNotes: notesActuelles.length } };
+    return {
+      statut: 200,
+      corps: { texte: composerRapport(notesActuelles), nombreNotes: notesActuelles.length, envoyeLe: statutEnvoi() },
+    };
+  }
+  if (chemin === "/api/v1/rapport/envoi" && methode === "POST") {
+    return { statut: 201, corps: { envoyeLe: enregistrerEnvoi() } };
   }
   return { statut: 404 };
 }
