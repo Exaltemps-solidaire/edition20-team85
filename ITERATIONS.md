@@ -7,6 +7,7 @@
 - **Temps restant au début de l'itération 1** : 90 minutes (2026-11-17).
 - **Temps restant au début de l'itération 2** : 75 minutes (2026-11-17).
 - **Temps restant au début de l'itération 3** : 60 minutes (2026-11-17). Le développeur confirme le gabarit déterministe (pas d'appel LLM) pour le rapport — lève le ❓ ci-dessous.
+- **Temps restant au début de l'itération 4** : 45 minutes (2026-11-17). Capacité restante : ~25 min pour cette itération (codage + publication + tour de test), peu de marge ensuite — probablement une seule itération de stabilisation après celle-ci.
 - **Durée du tour de test de l'équipe** : 10 minutes.
 - **Capacité estimée** : chaque itération coûte son codage (≤10 min) + ~5 min de publication + 10 min de tour de test, soit 18 à 25 min. 120 minutes permettent environ 5 itérations.
 
@@ -107,7 +108,31 @@
 
 ---
 
+## Itération 4 : Le statut d'envoi au magistrat est visible depuis l'écran de situation
+
+- **Dans le périmètre** : l'envoi (bouton « Envoyer au magistrat » sur l'écran rapport) est enregistré côté API avec sa date ; l'écran de situation affiche un badge « Envoyé au magistrat le <date> » quand c'est le cas.
+- **Hors périmètre** : envoi réel (email/API externe), historique de plusieurs envois, annulation d'un envoi.
+- **Critères d'acceptation** :
+  - Étant donné un rapport envoyé au magistrat, quand on revient à l'écran de situation, alors un badge « Envoyé au magistrat le <date> » y est visible.
+  - Étant donné aucun envoi, quand on est sur l'écran de situation, alors aucun badge d'envoi ne s'affiche.
+  - Étant donné l'API, quand on appelle `POST /api/v1/rapport/envoi`, alors l'envoi est enregistré avec une date, retrouvable ensuite via `GET /api/v1/rapport`.
+- **Hypothèse de l'équipe couverte** : aucune fournie ; complète la famille d'idées n°2 (statut de suivi de l'intervention).
+- **Codage estimé** : 8 minutes.
+- **Fichiers prévus** : `api/src/routes.ts`, `api/src/routes.test.ts`, `frontend/src/app/page.tsx`, `frontend/src/app/page.module.css`.
+- **Tests unitaires prévus** : 2 — enregistrement de l'envoi avec date, absence d'envoi par défaut.
+- **Étapes ajoutées à la démo** : après l'envoi, revenir à l'écran de situation et constater le badge.
+- **Bilan** :
+  - **Durée de codage réelle** : 1 minute (chrono `.iterations/4.debut`/`4.fin`), très sous le budget de 8 minutes estimé. Aucun dépassement.
+  - **Critères d'acceptation** : les 3 sont satisfaits. Le badge « Envoyé au magistrat le <date> » apparaît sur l'écran de situation après l'envoi (vérifié en curl sur le déploiement : `GET /api/v1/rapport` passe de `envoyeLe: null` à une date après `POST /api/v1/rapport/envoi`) ; sans envoi, `envoyeLe` reste `null` et aucun badge ne s'affiche côté code ; l'enregistrement et sa relecture sont couverts par un test unitaire dédié.
+  - **Reporté** : rien. Pas d'historique de plusieurs envois ni d'annulation, conformément au hors-périmètre défini.
+  - **Ce que le harnais a bloqué ou refusé** : rien. `verifier-deployabilite.sh` n'a signalé aucune borne ; `signaler-version.sh 4` est passé du premier coup.
+  - **Modifications** :
+    - `api/src/routes.ts` : ajoute `enregistrerEnvoi()`/`statutEnvoi()` (état en mémoire, un seul envoi suivi), la route `POST /api/v1/rapport/envoi`, et expose `envoyeLe` dans `GET /api/v1/rapport` — sert les critères 1 et 3.
+    - `api/src/routes.test.ts` : 1 test ajouté (défaut `null`, puis date retrouvée après enregistrement) — protège le critère 3.
+    - `frontend/src/app/page.tsx` : l'envoi appelle l'API (plus de mock purement local), le badge d'envoi s'affiche à la fois sur l'écran rapport et sur l'écran de situation, alimenté par le même état `envoyeLe` — sert les critères 1 et 2.
+    - `frontend/src/app/page.module.css` : style du badge `.badgeEnvoye` sur l'écran de situation — sert le critère 1.
+    - `e2e/demo.spec.ts` : étape « Je retrouve le statut d'envoi sur l'écran de situation » ajoutée (hors DoD ; toujours non exécutable sur cette VM, voir bilan de l'itération 1).
+
 ## À venir (objectifs ordonnés, non détaillés)
 
-4. Le statut « envoyé au magistrat » et la date d'envoi sont visibles depuis l'écran de situation (historique minimal).
 5. Stabilisation finale pour le pitch : relecture des textes, vérification du parcours complet sur l'URL publique, correctifs mineurs — pas de nouvelle fonctionnalité.
