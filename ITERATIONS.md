@@ -6,6 +6,7 @@
 - **Temps restant annoncé** : 120 minutes (question posée le 2026-11-17, avant planification).
 - **Temps restant au début de l'itération 1** : 90 minutes (2026-11-17).
 - **Temps restant au début de l'itération 2** : 75 minutes (2026-11-17).
+- **Temps restant au début de l'itération 3** : 60 minutes (2026-11-17). Le développeur confirme le gabarit déterministe (pas d'appel LLM) pour le rapport — lève le ❓ ci-dessous.
 - **Durée du tour de test de l'équipe** : 10 minutes.
 - **Capacité estimée** : chaque itération coûte son codage (≤10 min) + ~5 min de publication + 10 min de tour de test, soit 18 à 25 min. 120 minutes permettent environ 5 itérations.
 
@@ -92,7 +93,17 @@
 - **Fichiers prévus** : `api/src/routes.ts` (composition du rapport + statut d'envoi), `api/src/routes.test.ts`, composant écran « Rédiger le rapport » côté frontend.
 - **Tests unitaires prévus** : 2 — composition du texte à partir d'une liste de notes, cas sans note.
 - **Étapes ajoutées à la démo** : depuis l'écran de situation, aller à « Rédiger le rapport », constater le texte composé, cliquer « Envoyer au magistrat », constater le statut.
-- **Bilan** : _à remplir en fin d'itération._
+- **Bilan** :
+  - **Durée de codage réelle** : 1 minute (chrono `.iterations/3.debut`/`3.fin`), très sous le budget de 10 minutes. Aucun dépassement.
+  - **Critères d'acceptation** : les 3 sont satisfaits. Le clic sur « Rédiger le rapport d'intervention » ouvre l'écran avec un texte composé à partir des notes capturées, tagué « Rédigé par l'assistant » (vérifié par code et en curl sur le déploiement : une note ajoutée réapparaît en puce dans `GET /api/v1/rapport`) ; le clic sur « Envoyer au magistrat » affiche le statut « Envoyé au magistrat » sans rechargement (état local) ; sans note capturée, le texte est remplacé par un message explicite (« Aucune note n'a encore été capturée... »), vérifié par test unitaire et en curl sur un store neuf.
+  - **Reporté** : rien. Conformément au ❓ tranché par le développeur en tête d'itération, le gabarit reste déterministe — aucun appel à `llm.internal` introduit.
+  - **Ce que le harnais a bloqué ou refusé** : rien. `verifier-deployabilite.sh` n'a signalé aucune borne ; `signaler-version.sh 3` est passé du premier coup.
+  - **Modifications** :
+    - `api/src/routes.ts` : ajoute `composerRapport(notes)` (gabarit déterministe, cas sans note géré explicitement) et la route `GET /api/v1/rapport` — sert les critères 1 et 3.
+    - `api/src/routes.test.ts` : 2 tests ajoutés sur `composerRapport` (cas vide, cas avec notes) — protège les critères 1 et 3.
+    - `frontend/src/app/page.tsx` : rend l'action « Rédiger le rapport d'intervention » cliquable, ajoute l'écran « Rédiger le rapport » (texte composé, tag IA, bouton d'envoi mocké, retour à l'écran de situation) — sert les critères 1 et 2.
+    - `frontend/src/app/page.module.css` : styles de l'écran rapport (bloc, tag, statut envoyé, boutons primaire/secondaire) repris de la charte du prototype — sert le critère 1.
+    - `e2e/demo.spec.ts` : étape « Je vois le rapport pré-rédigé puis je l'envoie au magistrat » ajoutée (hors DoD ; toujours non exécutable sur cette VM, voir bilan de l'itération 1).
 
 ---
 
