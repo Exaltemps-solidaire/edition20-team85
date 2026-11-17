@@ -18,4 +18,12 @@ test("Démo : le cas passant", async ({ page }) => {
     await page.getByRole("button", { name: "Enregistrer la note" }).click();
     await expect(page.getByText("Léa semble sereine")).toBeVisible();
   });
+
+  await test.step("Je vois le rapport pré-rédigé puis je l'envoie au magistrat", async () => {
+    await page.getByText("Rédiger le rapport d'intervention").click();
+    await expect(page.getByText("Rédigé par l'assistant")).toBeVisible();
+    await expect(page.getByText("Léa semble sereine")).toBeVisible();
+    await page.getByRole("button", { name: "Envoyer au magistrat" }).click();
+    await expect(page.getByText("Envoyé au magistrat")).toBeVisible();
+  });
 });
