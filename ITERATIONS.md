@@ -35,7 +35,22 @@
 - **Fichiers prévus** : `frontend/src/app/page.tsx`, `.env.example`, `DEPLOIEMENT.md`, `/srv/team85/app/podman-compose.yml`.
 - **Tests unitaires prévus** : aucun — balisage pur, pas de logique métier à cette itération (conforme à la DoD : pas de test sur du balisage).
 - **Étapes ajoutées à la démo** : ouvrir l'application, constater l'écran « Vue de la situation » avec la famille Martin.
-- **Bilan** : _à remplir en fin d'itération._
+- **Bilan** :
+  - **Durée de codage réelle** : 1 minute (chrono `.iterations/1.debut`/`1.fin`), largement sous le budget de 10 minutes. Aucun dépassement, aucune question posée au développeur sur ce point.
+  - **Durée totale de l'itération (codage + déploiement + publication)** : environ 15 minutes.
+  - **Critères d'acceptation** : les 3 sont satisfaits — écran avec la famille Martin en ligne (vérifié localement, `curl localhost:8080/` renvoie le HTML avec « Famille Martin »), `/health` et `/sante` répondent 200 sur 8080 et 8081, `./scripts/verifier-deployabilite.sh` ne signale aucune borne ni alarme.
+  - **Reporté** : rien de prévu n'a été reporté. Hors plan initial : la démo e2e (`e2e/demo.spec.ts`) a été mise à jour mais ne peut pas être exécutée sur cette VM — Chromium installé par Playwright nécessite des bibliothèques système absentes (`libnspr4` et consorts). Ce n'est pas bloquant (la démo n'est pas dans la DoD) ; à signaler à l'équipe plateforme si on veut la faire tourner ici un jour.
+  - **Ce que le harnais a bloqué ou refusé** : rien. Le hook `verifier-avant-signal.sh` a laissé passer `signaler-version.sh 1` du premier coup.
+  - **Incident de déploiement et correction** : les deux premiers `podman build` ont échoué (`short-name "node:24-alpine" did not resolve to an alias`), conformément à l'avertissement du `/CLAUDE.md` racine. Corrigé en qualifiant les images de base en `docker.io/library/...` dans `api/Dockerfile` et `frontend/Dockerfile` (commit séparé).
+  - **Modifications** :
+    - `frontend/src/app/page.tsx` : remplace la page `create-next-app` par l'écran « Vue de la situation » (famille Martin, acteurs, 3 actions), données en dur — sert le critère 1.
+    - `frontend/src/app/page.module.css` : styles repris de la charte du prototype (`encre`/`ardoise`/`papier`/`appui`) pour cet écran — sert le critère 1.
+    - `frontend/nginx.conf` : repris du gabarit de sécurité de la plateforme (`core-platform/templates/nginx.conf`), `connect-src` réduit à `'self'`, routes `/health` et `/sante` conservées — sert le critère 2.
+    - `.env.example` : liste la seule variable lue pour l'instant (`PORT`) — sert le critère 3 (contrat de déployabilité).
+    - `DEPLOIEMENT.md` : page de déploiement (services, externes, fragile, contact) — sert le critère 3.
+    - `podman-compose.yml` : recette de déploiement (réseau `core-network`, ports 8080/8081) — sert le critère 1 (mise en ligne).
+    - `api/Dockerfile`, `frontend/Dockerfile` : image de base qualifiée en `docker.io/library/...` — correctif nécessaire au déploiement, sert le critère 1.
+    - `e2e/demo.spec.ts` : étape « Je vois la situation de la famille Martin » ajoutée (hors DoD).
 
 ## Itération 2 : On peut capturer une note pendant l'intervention et la retrouver
 
