@@ -11,4 +11,11 @@ test("Démo : le cas passant", async ({ page }) => {
     await expect(page.getByRole("heading", { name: "Famille Martin" })).toBeVisible();
     await expect(page.getByText("Capturer ce que j'entends")).toBeVisible();
   });
+
+  await test.step("Je capture une note pendant l'intervention", async () => {
+    await page.getByText("Capturer ce que j'entends").click();
+    await page.getByPlaceholder("Ce que j'entends pendant l'intervention…").fill("Léa semble sereine");
+    await page.getByRole("button", { name: "Enregistrer la note" }).click();
+    await expect(page.getByText("Léa semble sereine")).toBeVisible();
+  });
 });
