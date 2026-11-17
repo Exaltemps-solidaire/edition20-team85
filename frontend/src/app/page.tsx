@@ -16,10 +16,15 @@ const situation = {
   },
 };
 
+type Ecran = "situation" | "rapport";
+
 export default function Home() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [captureOuverte, setCaptureOuverte] = useState(false);
   const [texte, setTexte] = useState("");
+  const [ecran, setEcran] = useState<Ecran>("situation");
+  const [rapportTexte, setRapportTexte] = useState("");
+  const [rapportEnvoye, setRapportEnvoye] = useState(false);
 
   useEffect(() => {
     fetch("/api/v1/notes")
@@ -44,6 +49,45 @@ export default function Home() {
       setTexte("");
       setCaptureOuverte(false);
     }
+  }
+
+  function ouvrirRapport() {
+    setEcran("rapport");
+    setRapportEnvoye(false);
+    fetch("/api/v1/rapport")
+      .then((reponse) => reponse.json())
+      .then((donnees: { texte: string }) => setRapportTexte(donnees.texte))
+      .catch(() => {
+        // L'API n'est pas joignable en chemin relatif hors de la passerelle d'entrée (voir DEPLOIEMENT.md).
+      });
+  }
+
+  if (ecran === "rapport") {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <div className={styles.labelService}>Rapport d&apos;intervention</div>
+          <h1>{situation.famille}</h1>
+          <div className={styles.subtitle}>Visite en cours</div>
+        </header>
+
+        <div className={styles.rapportBloc}>
+          <span className={styles.tagIA}>Rédigé par l&apos;assistant</span>
+          <p className={styles.rapportTexte}>{rapportTexte}</p>
+        </div>
+
+        {rapportEnvoye ? (
+          <div className={styles.statutEnvoye}>Envoyé au magistrat</div>
+        ) : (
+          <button className={styles.btnPrimary} onClick={() => setRapportEnvoye(true)}>
+            Envoyer au magistrat
+          </button>
+        )}
+        <button className={styles.btnSecondaire} onClick={() => setEcran("situation")}>
+          Reprendre plus tard
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -87,7 +131,12 @@ export default function Home() {
           <span>Capturer ce que j&apos;entends</span>
           <span className={styles.actionArrow}>›</span>
         </li>
-        <li className={styles.actionItem}>
+        <li
+          className={styles.actionItem}
+          onClick={ouvrirRapport}
+          role="button"
+          tabIndex={0}
+        >
           <span>Rédiger le rapport d&apos;intervention</span>
           <span className={styles.actionArrow}>›</span>
         </li>

@@ -21,6 +21,16 @@ export function listerNotes(): Note[] {
   return notes;
 }
 
+// Gabarit déterministe : pas d'appel à un modèle de langage (voir ❓ dans ITERATIONS.md,
+// tranché par le développeur en faveur du gabarit pour cette itération).
+export function composerRapport(notesSaisies: Note[]): string {
+  if (notesSaisies.length === 0) {
+    return "Aucune note n'a encore été capturée pour cette intervention. Le rapport sera composé automatiquement dès qu'une note sera prise.";
+  }
+  const puces = notesSaisies.map((n) => `- ${n.texte}`).join("\n");
+  return `Lors de l'intervention, les éléments suivants ont été relevés :\n${puces}`;
+}
+
 export function router(methode: string, url: string, corps?: unknown): Reponse {
   const chemin = new URL(url, "http://api").pathname;
   if (methode === "GET" && (chemin === "/health" || chemin === "/sante")) {
@@ -37,6 +47,10 @@ export function router(methode: string, url: string, corps?: unknown): Reponse {
       if (note === null) return { statut: 400, corps: { erreur: "note vide" } };
       return { statut: 201, corps: note };
     }
+  }
+  if (chemin === "/api/v1/rapport" && methode === "GET") {
+    const notesActuelles = listerNotes();
+    return { statut: 200, corps: { texte: composerRapport(notesActuelles), nombreNotes: notesActuelles.length } };
   }
   return { statut: 404 };
 }

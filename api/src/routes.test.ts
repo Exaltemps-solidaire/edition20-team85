@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ajouterNote, router } from "./routes.ts";
+import { ajouterNote, composerRapport, router } from "./routes.ts";
 
 describe("router", () => {
   it("répond 200 sur les deux routes de santé", () => {
@@ -29,5 +29,16 @@ describe("ajouterNote", () => {
   it("coupe les espaces superflus et refuse une note vide", () => {
     expect(ajouterNote("   ")).toBeNull();
     expect(ajouterNote("  bonjour  ")?.texte).toBe("bonjour");
+  });
+});
+
+describe("composerRapport", () => {
+  it("retourne un message explicite quand aucune note n'est capturée", () => {
+    expect(composerRapport([])).toContain("Aucune note");
+  });
+
+  it("compose un texte à partir des notes capturées", () => {
+    const texte = composerRapport([{ texte: "Léa semble sereine", creeLe: "2026-01-01T00:00:00.000Z" }]);
+    expect(texte).toContain("Léa semble sereine");
   });
 });
