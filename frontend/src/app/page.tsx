@@ -161,7 +161,12 @@ export default function Home() {
           <span>Rédiger le rapport d&apos;intervention</span>
           <span className={styles.actionArrow}>›</span>
         </li>
-        <li className={styles.actionItem}>
+        <li
+          className={styles.actionItem}
+          onClick={ouvrirRapport}
+          role="button"
+          tabIndex={0}
+        >
           <span>Envoyer au magistrat</span>
           <span className={styles.actionArrow}>›</span>
         </li>
