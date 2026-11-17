@@ -5,6 +5,7 @@
 - **Source du plan** : proposé par l'agent. La passation ne contient pas de plan de livraison (`cadrage/6-plan-de-livraison.md`), pas d'hypothèses de version (`cadrage/5-hypotheses.md`) et pas de PRD (`cadrage/7-prd.md`) — tous trois marqués « Pas encore produit ». Le découpage s'appuie donc sur `cadrage/3-solution.md`, `prototype/index.html` et l'ordre de priorité de `cadrage/2-idees-priorisees.md`.
 - **Temps restant annoncé** : 120 minutes (question posée le 2026-11-17, avant planification).
 - **Temps restant au début de l'itération 1** : 90 minutes (2026-11-17).
+- **Temps restant au début de l'itération 2** : 75 minutes (2026-11-17).
 - **Durée du tour de test de l'équipe** : 10 minutes.
 - **Capacité estimée** : chaque itération coûte son codage (≤10 min) + ~5 min de publication + 10 min de tour de test, soit 18 à 25 min. 120 minutes permettent environ 5 itérations.
 
@@ -65,7 +66,18 @@
 - **Fichiers prévus** : `api/src/routes.ts`, `api/src/routes.test.ts`, un nouveau composant/écran de capture côté frontend, le composant liste de notes sur l'écran de situation.
 - **Tests unitaires prévus** : 2 — validation d'une note vide rejetée, ajout puis récupération d'une note dans le store.
 - **Étapes ajoutées à la démo** : capturer une note depuis l'écran de situation, vérifier qu'elle apparaît dans la liste.
-- **Bilan** : _à remplir en fin d'itération._
+- **Bilan** :
+  - **Durée de codage réelle** : 6 minutes (chrono `.iterations/2.debut`/`2.fin`), sous le budget de 10 minutes. Aucun dépassement, aucune question posée au développeur sur ce point.
+  - **Critères d'acceptation** : les 3 sont satisfaits. Clic sur « Capturer ce que j'entends » ouvre le formulaire (vérifié par code et par l'étape e2e ajoutée) ; la note soumise réapparaît dans la liste sans rechargement de page (état local mis à jour après le `POST`, vérifié aussi en curl sur le conteneur déployé : `POST` puis `GET /api/v1/notes` retrouve la note) ; `POST /api/v1/notes` avec un texte vide ou fait d'espaces répond 400 (vérifié par test unitaire et par curl sur le déploiement).
+  - **Reporté** : rien. La persistance reste en mémoire (perdue au redémarrage du conteneur) — assumé dans le code (commentaire dans `routes.ts`), à lever seulement si l'équipe demande une vraie base.
+  - **Ce que le harnais a bloqué ou refusé** : rien. `verifier-deployabilite.sh` n'a signalé aucune borne ; `signaler-version.sh 2` est passé du premier coup.
+  - **Modifications** :
+    - `api/src/routes.ts` : ajoute le type `Note`, le store en mémoire, `ajouterNote`/`listerNotes`, et les routes `GET`/`POST /api/v1/notes` — sert les critères 2 et 3.
+    - `api/src/server.ts` : ajoute le parsing JSON du corps des requêtes `POST` (nécessaire pour recevoir le texte de la note) — sert le critère 2.
+    - `api/src/routes.test.ts` : 3 tests ajoutés (note vide rejetée, note valide retrouvée en liste) + bloc dédié à `ajouterNote` (trim, rejet du vide) — protège les critères 2 et 3.
+    - `frontend/src/app/page.tsx` : rend l'action « Capturer ce que j'entends » cliquable, affiche le formulaire de saisie, appelle l'API et affiche la liste des notes capturées — sert les critères 1 et 2.
+    - `frontend/src/app/page.module.css` : styles du formulaire de capture et de la liste de notes — sert le critère 1.
+    - `e2e/demo.spec.ts` : étape « Je capture une note pendant l'intervention » ajoutée (hors DoD ; toujours non exécutable sur cette VM, voir bilan de l'itération 1).
 
 ## Itération 3 : Le rapport de la visite est pré-rédigé à partir des notes et peut être envoyé
 
