@@ -1,5 +1,5 @@
 # Service api du gabarit : Node exécute le TypeScript directement, sans dépendance ni compilation.
-FROM node:24-alpine
+FROM docker.io/library/node:24-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY src ./src
