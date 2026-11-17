@@ -26,4 +26,9 @@ test("Démo : le cas passant", async ({ page }) => {
     await page.getByRole("button", { name: "Envoyer au magistrat" }).click();
     await expect(page.getByText("Envoyé au magistrat")).toBeVisible();
   });
+
+  await test.step("Je retrouve le statut d'envoi sur l'écran de situation", async () => {
+    await page.getByRole("button", { name: "Reprendre plus tard" }).click();
+    await expect(page.getByText("Envoyé au magistrat")).toBeVisible();
+  });
 });
