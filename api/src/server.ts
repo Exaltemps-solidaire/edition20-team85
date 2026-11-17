@@ -5,13 +5,33 @@ import { router } from "./routes.ts";
 
 const port = Number(process.env.PORT ?? 8081);
 
-const serveur = createServer((req, res) => {
-  const { statut, corps } = router(req.method ?? "GET", req.url ?? "/");
+function repondre(res: import("node:http").ServerResponse, statut: number, corps: unknown) {
   if (corps === undefined) {
     res.writeHead(statut).end();
   } else {
     res.writeHead(statut, { "Content-Type": "application/json" }).end(JSON.stringify(corps));
   }
+}
+
+const serveur = createServer((req, res) => {
+  const methode = req.method ?? "GET";
+  if (methode === "POST") {
+    const morceaux: Buffer[] = [];
+    req.on("data", (morceau) => morceaux.push(morceau));
+    req.on("end", () => {
+      let corps: unknown;
+      try {
+        corps = JSON.parse(Buffer.concat(morceaux).toString("utf8") || "{}");
+      } catch {
+        return repondre(res, 400, { erreur: "JSON invalide" });
+      }
+      const { statut, corps: reponse } = router(methode, req.url ?? "/", corps);
+      repondre(res, statut, reponse);
+    });
+    return;
+  }
+  const { statut, corps } = router(methode, req.url ?? "/");
+  repondre(res, statut, corps);
 });
 
 serveur.listen(port, () => console.log(`api : à l'écoute sur le port ${port}`));
